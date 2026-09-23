@@ -1,7 +1,17 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Boolean, Integer, String, ForeignKey
 from backend.database import Base
 from sqlalchemy.orm import relationship
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+    tag = Column(String, ForeignKey("account__details.tag", ondelete="SET NULL"), unique=True, nullable=True)
+    account = relationship("Account", foreign_keys=[tag])
 
 class Account(Base):
     __tablename__ = "account__details"
@@ -232,7 +242,6 @@ class Id_to_name(Base):
     id = Column(Integer, primary_key=True, nullable = False)
     name = Column(String, nullable = False)
 
-
 class Levels_per_th_home(Base):
     __tablename__ = "levels_per_th_home"
  
@@ -256,7 +265,6 @@ class Levels_per_th_home(Base):
     th16 = Column(Integer, nullable=False, default=0)
     th17 = Column(Integer, nullable=False, default=0)
     th18 = Column(Integer, nullable=False, default=0)
- 
  
 class Time_per_th_home(Base):
     __tablename__ = "time_per_th_home"
@@ -285,7 +293,6 @@ class Time_per_th_home(Base):
     level19 = Column(Integer, nullable=True)
     level20 = Column(Integer, nullable=True)
     level21 = Column(Integer, nullable=True)
- 
  
 class Time_per_level_hero_pet(Base):
     __tablename__ = "time_per_level_hero_pet"

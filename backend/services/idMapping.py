@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from backend.database import engine
-from backend.models import Id_to_name
+from backend.models.models import Id_to_name
 
 
 def map_id_to_name(id):
