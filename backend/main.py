@@ -6,6 +6,7 @@ from backend.config import settings
 from backend.services.coc_api_calling import call_coc_api
 from backend.services.database import store_in_db
 from sqlalchemy import select, delete
+from backend.services import upgrade
 import json
 from backend import auth
 
@@ -48,3 +49,12 @@ def get_json_data(village_data: schemas.village_data, user: auth.user_dependency
     db.commit()
 
     return {"player_tag": tag, "data": data}
+
+@app.get("/unmaxed_buildings")
+def unmaxed_buildings(user: auth.user_dependency, db: auth.db_dependency):
+  db = SessionLocal()
+  buildings_left = upgrade.get_unmaxed_things(user.tag, db)
+  return buildings_left
+
+#crafting station setup
+  

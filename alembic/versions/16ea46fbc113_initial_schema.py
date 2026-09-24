@@ -72,6 +72,7 @@ def upgrade() -> None:
     sa.Column('player_tag', sa.String(), nullable=True),
     sa.Column('building_type', sa.String(), nullable=False),
     sa.Column('building_lvl', sa.Integer(), nullable=False),
+    sa.Column('building_cnt', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['player_tag'], ['account__details.tag'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -168,8 +169,9 @@ def upgrade() -> None:
     op.create_table('traps',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('player_tag', sa.String(), nullable=True),
-    sa.Column('tool_type', sa.String(), nullable=False),
-    sa.Column('tool_lvl', sa.Integer(), nullable=False),
+    sa.Column('trap_type', sa.String(), nullable=False),
+    sa.Column('trap_lvl', sa.Integer(), nullable=False),
+    sa.Column('trap_cnt', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['player_tag'], ['account__details.tag'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )

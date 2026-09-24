@@ -6,9 +6,9 @@ def map_id_to_name(id :int):
     if str(id) in id_mapping:
       return id_mapping[str(id)]
     return "Unknown"
-# while True:
-# #   id = int(input("Enter the id to map: "))
-# #   print(map_id_to_name(id))
+while True:
+  id = int(input("Enter the id to map: "))
+  print(map_id_to_name(id))
 
 
 # with open("backend/coc-api-test2.json", "r") as f:
@@ -34,7 +34,7 @@ def map_id_to_name(id :int):
 # for item in value:
 #   print(f"{item.lower().replace(' ', '_')}_lvl = Column(Integer, default= 0, nullable=False)")
 
-with open("backend/testing/idmapping.json", "r") as f:
-  id_mapping = dict(json.load(f))
-  for key, val in id_mapping.items():
-    print(f'{{"id":{key},"name":"{val}"}},')
+# with open("backend/testing/idmapping.json", "r") as f:
+#   id_mapping = dict(json.load(f))
+#   for key, val in id_mapping.items():
+#     print(f'{{"id":{key},"name":"{val}"}},')

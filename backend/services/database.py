@@ -60,13 +60,16 @@ def create_account_obj(json_part, api_part):
             Buildings(
                 building_type=map_id_to_name(b["data"]),
                 building_lvl=b.get("lvl") or 0,
+                building_cnt=b.get("cnt") or 1,
             )
             for b in json_part["buildings"]
         ],
         trap_details=[
             Traps(
-                tool_type=map_id_to_name(b["data"]),
-                tool_lvl=b.get("lvl") or 0,
+                trap_type=map_id_to_name(b["data"]),
+                trap_lvl=b.get("lvl") or 0,
+                trap_cnt=b.get("cnt") or 1,
+
             )
             for b in json_part["traps"]
         ],

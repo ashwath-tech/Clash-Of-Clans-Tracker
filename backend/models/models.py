@@ -36,6 +36,7 @@ class Buildings(Base):
 
     building_type = Column(String, nullable=False)
     building_lvl = Column(Integer, nullable=False)
+    building_cnt = Column(Integer, nullable=False, default=1)
     
 class Traps(Base):
     __tablename__ = "traps"
@@ -43,8 +44,9 @@ class Traps(Base):
     player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
     player = relationship("Account", back_populates="trap_details")
 
-    tool_type = Column(String, nullable=False)
-    tool_lvl = Column(Integer, nullable=False)
+    trap_type = Column(String, nullable=False)
+    trap_lvl = Column(Integer, nullable=False)
+    trap_cnt = Column(Integer, nullable=False, default=1)
 
 class Helpers(Base):
     __tablename__ = "helpers"
