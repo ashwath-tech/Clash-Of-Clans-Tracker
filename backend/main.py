@@ -53,8 +53,8 @@ def get_json_data(village_data: schemas.village_data, user: auth.user_dependency
 @app.get("/unmaxed_buildings")
 def unmaxed_buildings(user: auth.user_dependency, db: auth.db_dependency):
   db = SessionLocal()
-  buildings_left = upgrade.get_unmaxed_things(user.tag, db)
-  return buildings_left
+  details = upgrade.get_unmaxed_things(user.tag, db)
+  return details
 
 #crafting station setup
   
