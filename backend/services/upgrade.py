@@ -1,4 +1,4 @@
-from backend.models.models import User, Account, Buildings, Levels_per_th_home, Traps, HomeTroops
+from backend.models.models import User, Account, Buildings, Levels_per_th_home, Traps, HomeTroops, Heroes, Spells
 from sqlalchemy import select, inspect
 from backend import auth
 from backend.database import SessionLocal
@@ -14,22 +14,24 @@ def get_unmaxed_things(tag : str, db ):
   all_traps = db.query(Traps).filter(Buildings.player_tag == tag).all()
 
   home_troops = db.query(HomeTroops).filter(Buildings.player_tag == tag).first()
-
+  home_spells = db.query(Spells).filter(Buildings.player_tag == tag).first()
   col_name = f"th{th_lvl}"
 
   all_buildings_dc = [{"building": b.building_type, "level": b.building_lvl, "cnt": b.building_cnt, "type": "building"} for b in all_buildings]
   all_traps_dc = [{"building": b.trap_type, "level": b.trap_lvl, "cnt": b.trap_cnt, "type": "trap"} for b in all_traps]
   all_buildings_dc.extend(all_traps_dc)
-  home_troops_dc = [{"building": b.trap_type, "level": b.trap_lvl, "cnt": b.trap_cnt, "type": "trap"} for b in all_traps]
 
   max_levels_for_th = db.query(Levels_per_th_home).all()
 
   max_levels_for_th_dc = {b.thing: getattr(b, col_name) for b in max_levels_for_th}
-  # print(max_levels_for_th_dc)
+
   troops_left = []
   maxed_troops = []
   for col in inspect(home_troops).mapper.column_attrs:
     if col.key[:-4] in max_levels_for_th_dc:
+      if max_levels_for_th_dc[col.key[:-4]] == 0:
+        print(f"max level for {col.key[:-4]} is 0, skipping")
+        continue
       if getattr(home_troops, col.key) < max_levels_for_th_dc[col.key[:-4]]:
         troops_left.append({"troop" : col.key, "level": getattr(home_troops, col.key), "max_lvl": max_levels_for_th_dc[col.key[:-4]]})
       else:
@@ -37,7 +39,38 @@ def get_unmaxed_things(tag : str, db ):
     else:
       print(f"troop {col.key[:-4]} not in max_levels_for_th_dc")
 
-  print(troops_left)
+  spells_left = []
+  maxed_spells = []
+  for col in inspect(home_spells).mapper.column_attrs:
+    if col.key[:-4] in max_levels_for_th_dc:
+      if max_levels_for_th_dc[col.key[:-4]] == 0:
+        print(f"max level for {col.key[:-4]} is 0, skipping")
+        continue
+      if getattr(home_spells, col.key) < max_levels_for_th_dc[col.key[:-4]]:
+        spells_left.append({"spell" : col.key, "level": getattr(home_spells, col.key), "max_lvl": max_levels_for_th_dc[col.key[:-4]]})
+      else:
+        maxed_spells.append({"spell" : col.key, "level": getattr(home_spells, col.key), "max_lvl": getattr(home_spells, col.key)})
+    else:
+      print(f"spell {col.key[:-4]} not in max_levels_for_th_dc")
+  #heroes
+  heroes_left = []
+  maxed_heroes = []
+  
+  heroes = db.query(Heroes).filter(Buildings.player_tag == tag).first()  
+  all_heroes = {}
+  all_heroes = {"barbarian_king_lvl": heroes.barbarian_king_lvl, "archer_queen_lvl": heroes.archer_queen_lvl, "grand_warden_lvl": heroes.grand_warden_lvl, "royal_champion_lvl": heroes.royal_champion_lvl, "dragon_duke_lvl": heroes.dragon_duke_lvl}
+
+  for hero, level in all_heroes.items():
+    if hero[:-4] in max_levels_for_th_dc:
+      if max_levels_for_th_dc[hero[:-4]] == 0:
+        print(f"max level for {hero[:-4]} is 0, skipping")
+        continue
+      if level < max_levels_for_th_dc[hero[:-4]]:
+        heroes_left.append({"hero": hero, "level": level, "max_lvl": max_levels_for_th_dc[hero[:-4]]})
+      else:
+        maxed_heroes.append({"hero": hero, "level": level, "max_lvl": level})
+    else:
+      print(f"hero {hero[:-4]} not in max_levels_for_th_dc")
 
   buildings_left = []
   maxed_buildings = []
@@ -50,10 +83,13 @@ def get_unmaxed_things(tag : str, db ):
     if b not in max_levels_for_th_dc:
       print(f"Building {b} not found in max_level")
       continue
+    if max_levels_for_th_dc[b] == 0:
+      print(f"max level for {b} is 0, skipping")
+      continue
     if l < max_levels_for_th_dc[b]:
       buildings_left.append({"building": b, "level": l, "max_lvl": max_levels_for_th_dc[b], "cnt": cnt, "type": t})
     else:
       maxed_buildings.append({"building": b, "level": l, "max_lvl": l, "cnt":  cnt, "type":t})
     
   db.close()
-  return {"buildings_left": buildings_left, "maxed_buildings" :maxed_buildings, "troops_left" :troops_left, "maxed_troops": maxed_troops}
+  return {"buildings_left": buildings_left, "maxed_buildings" :maxed_buildings, "troops_left" :troops_left, "maxed_troops": maxed_troops, "heroes_left": heroes_left, "maxed_heroes": maxed_heroes, "spells_left": spells_left, "maxed_spells": maxed_spells}
