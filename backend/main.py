@@ -56,5 +56,15 @@ def unmaxed_buildings(user: auth.user_dependency, db: auth.db_dependency):
   details = upgrade.get_unmaxed_things(user.tag, db)
   return details
 
+@app.get("/building_time")
+def building_time(user: auth.user_dependency, db: auth.db_dependency):
+  db = SessionLocal()
+  details = upgrade.get_unmaxed_things(user.tag, db)
+  building_details = details.get("buildings_left", [])
+  print(f"building_details: {building_details}")
+  total_time, time_details = upgrade.get_building_time(building_details, db)
+  
+  return {"total_time": total_time, "building_time": time_details}
+
 #crafting station setup
   
