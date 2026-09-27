@@ -17,11 +17,12 @@ down_revision: Union[str, Sequence[str], None] = '80edcbf85d16'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-LVL_COLS = ['th2', 'th3', 'th4', 'th5', 'th6', 'th7', 'th8', 'th9', 'th10', 'th11', 'th12', 'th13', 'th14', 'th15', 'th16', 'th17', 'th18']
-TIME_COLS = ['level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8', 'level9', 'level10', 'level11', 'level12', 'level13', 'level14', 'level15', 'level16', 'level17', 'level18', 'level19', 'level20', 'level21']
-HP_COLS = ['level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8', 'level9', 'level10', 'level11', 'level12', 'level13', 'level14', 'level15', 'level16', 'level17', 'level18', 'level19', 'level20', 'level21', 'level22', 'level23', 'level24', 'level25', 'level26', 'level27', 'level28', 'level29', 'level30', 'level31', 'level32', 'level33', 'level34', 'level35', 'level36', 'level37', 'level38', 'level39', 'level40', 'level41', 'level42', 'level43', 'level44', 'level45', 'level46', 'level47', 'level48', 'level49', 'level50', 'level51', 'level52', 'level53', 'level54', 'level55', 'level56', 'level57', 'level58', 'level59', 'level60', 'level61', 'level62', 'level63', 'level64', 'level65', 'level66', 'level67', 'level68', 'level69', 'level70', 'level71', 'level72', 'level73', 'level74', 'level75', 'level76', 'level77', 'level78', 'level79', 'level80', 'level81', 'level82', 'level83', 'level84', 'level85', 'level86', 'level87', 'level88', 'level89', 'level90', 'level91', 'level92', 'level93', 'level94', 'level95']
+# --- Source data, kept in its original wide shape for readability ---
+# Each row: (thing, category, *values), values aligned 1:1 with the
+# level list passed to the matching unpivot_* call below.
+# Level-cap rows use 0 to mean "not unlocked at this TH" (skipped on insert).
+# Time rows use None to mean "no such level for this thing" (skipped on insert).
 
-# Each tuple: (thing, category, *values) -- values align 1:1 with the COLS list above.
 LEVELS_DATA = [
     ('cannon', 'Defenses', 3, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 19, 20, 21, 21, 21, 21),
     ('archer_tower', 'Defenses', 2, 3, 4, 6, 7, 8, 10, 11, 13, 15, 17, 19, 20, 21, 21, 21, 21),
@@ -266,35 +267,117 @@ HERO_PET_DATA = [
     ('angry_jelly', 'Pets', None, 259200, 345600, 432000, 518400, 604800, 691200, 691200, 691200, 691200, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),
 ]
 
+# th_level values that align 1:1 with LEVELS_DATA's value columns (th2..th18)
+TH_LEVELS = list(range(2, 19))
+# level values that align 1:1 with TIME_DATA's / HERO_PET_DATA's value columns
+TIME_LEVELS = list(range(1, 22))
+HP_LEVELS = list(range(1, 96))
 
-def _rows_as_dicts(data, cols):
-    keys = ["thing", "category"] + cols
-    return [dict(zip(keys, row)) for row in data]
+# A few things use an inconsistent category between LEVELS_DATA and TIME_DATA
+# in the source data (e.g. 'poison_spell' as 'Spells' vs 'Dark Spells').
+# Normalize to the more specific category so `thing` + `category` line up
+# across all three tables.
+CATEGORY_OVERRIDES = {
+    ('poison_spell', 'Spells'): 'Dark Spells',
+    ('earthquake_spell', 'Spells'): 'Dark Spells',
+    ('haste_spell', 'Spells'): 'Dark Spells',
+    ('skeleton_spell', 'Spells'): 'Dark Spells',
+    ('bat_spell', 'Spells'): 'Dark Spells',
+    ('overgrowth_spell', 'Spells'): 'Dark Spells',
+}
+
+
+def _normalize_category(thing, category):
+    return CATEGORY_OVERRIDES.get((thing, category), category)
+
+
+def _unpivot_levels(data, levels):
+    """(thing, category, v1, v2, ...) -> narrow dicts. Skips 0 (not yet unlocked)."""
+    rows = []
+    for entry in data:
+        thing, category = entry[0], entry[1]
+        category = _normalize_category(thing, category)
+        for lvl, val in zip(levels, entry[2:]):
+            if val is None or val == 0:
+                continue
+            rows.append({
+                "thing": thing,
+                "category": category,
+                "th_level": lvl,
+                "unlocked_level": val,
+            })
+    return rows
+
+
+def _unpivot_times(data, levels):
+    """(thing, category, v1, v2, ...) -> narrow dicts. Skips None (no such level)."""
+    rows = []
+    for entry in data:
+        thing, category = entry[0], entry[1]
+        category = _normalize_category(thing, category)
+        for lvl, val in zip(levels, entry[2:]):
+            if val is None:
+                continue
+            rows.append({
+                "thing": thing,
+                "category": category,
+                "level": lvl,
+                "upgrade_time_seconds": val,
+            })
+    return rows
 
 
 def upgrade():
     levels_t = sa.table(
         "levels_per_th_home",
         sa.column("thing"), sa.column("category"),
-        *[sa.column(c) for c in LVL_COLS],
+        sa.column("th_level"), sa.column("unlocked_level"),
     )
     time_t = sa.table(
         "time_per_th_home",
         sa.column("thing"), sa.column("category"),
-        *[sa.column(c) for c in TIME_COLS],
+        sa.column("level"), sa.column("upgrade_time_seconds"),
     )
     hp_t = sa.table(
         "time_per_level_hero_pet",
         sa.column("thing"), sa.column("category"),
-        *[sa.column(c) for c in HP_COLS],
+        sa.column("level"), sa.column("upgrade_time_seconds"),
     )
 
-    op.bulk_insert(levels_t, _rows_as_dicts(LEVELS_DATA, LVL_COLS))
-    op.bulk_insert(time_t, _rows_as_dicts(TIME_DATA, TIME_COLS))
-    op.bulk_insert(hp_t, _rows_as_dicts(HERO_PET_DATA, HP_COLS))
+    levels_rows = _unpivot_levels(LEVELS_DATA, TH_LEVELS)
+    time_rows = _unpivot_times(TIME_DATA, TIME_LEVELS)
+    hp_rows = _unpivot_times(HERO_PET_DATA, HP_LEVELS)
+
+    if levels_rows:
+        op.bulk_insert(levels_t, levels_rows)
+    if time_rows:
+        op.bulk_insert(time_t, time_rows)
+    if hp_rows:
+        op.bulk_insert(hp_t, hp_rows)
 
 
 def downgrade():
-    op.execute(sa.text("DELETE FROM time_per_level_hero_pet"))
-    op.execute(sa.text("DELETE FROM time_per_th_home"))
-    op.execute(sa.text("DELETE FROM levels_per_th_home"))
+    # Delete only the "thing" names this migration inserted, rather than
+    # wiping the whole table -- safer if these tables ever get more rows
+    # from a later migration (e.g. a future TH19 seed).
+    bind = op.get_bind()
+
+    levels_things = sorted({row[0] for row in LEVELS_DATA})
+    time_things = sorted({row[0] for row in TIME_DATA})
+    hp_things = sorted({row[0] for row in HERO_PET_DATA})
+
+    bind.execute(
+        sa.text("DELETE FROM levels_per_th_home WHERE thing IN :things")
+        .bindparams(sa.bindparam("things", expanding=True)),
+        {"things": levels_things},
+    )
+    bind.execute(
+        sa.text("DELETE FROM time_per_th_home WHERE thing IN :things")
+        .bindparams(sa.bindparam("things", expanding=True)),
+        {"things": time_things},
+    )
+    bind.execute(
+        sa.text("DELETE FROM time_per_level_hero_pet WHERE thing IN :things")
+        .bindparams(sa.bindparam("things", expanding=True)),
+        {"things": hp_things},
+    )

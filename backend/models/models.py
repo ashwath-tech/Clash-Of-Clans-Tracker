@@ -1,6 +1,15 @@
-from sqlalchemy import Column, Boolean, Integer, String, ForeignKey
+from sqlalchemy import Column, Boolean, Integer, String, ForeignKey, Table, UniqueConstraint
 from backend.database import Base
 from sqlalchemy.orm import relationship
+
+
+user_accounts = Table(
+    "user_accounts",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag", String, ForeignKey("account__details.tag", ondelete="CASCADE"), primary_key=True),
+)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -10,8 +19,8 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
 
-    tag = Column(String, ForeignKey("account__details.tag", ondelete="SET NULL"), unique=True, nullable=True)
-    account = relationship("Account", foreign_keys=[tag])
+    accounts = relationship("Account", secondary=user_accounts, back_populates="users")
+
 
 class Account(Base):
     __tablename__ = "account__details"
@@ -20,13 +29,18 @@ class Account(Base):
     exp_lvl = Column(Integer, nullable=False)
     town_hall_lvl = Column(Integer, nullable=False)
     trophies = Column(Integer, nullable=False)
+
+    users = relationship("User", secondary=user_accounts, back_populates="accounts")
+
     building_details = relationship("Buildings", back_populates="player", cascade="all,delete-orphan")
     troop_details = relationship("HomeTroops", back_populates="player", cascade="all,delete-orphan")
     spell_details = relationship("Spells", back_populates="player", cascade="all,delete-orphan")
     helper_details = relationship("Helpers", back_populates="player", cascade="all,delete-orphan")
     trap_details = relationship("Traps", back_populates="player", cascade="all,delete-orphan")
-    bbtroop_details = relationship("BBtroops", back_populates="player", cascade="all,delete-orphan")
     hero_details = relationship("Heroes", back_populates="player", cascade="all,delete-orphan")
+    hero_equipment_details = relationship("HeroEquipment", back_populates="player", cascade="all,delete-orphan")
+    # NOTE: bbtroop_details / BBtroops removed entirely.
+
 
 class Buildings(Base):
     __tablename__ = "buildings"
@@ -37,7 +51,8 @@ class Buildings(Base):
     building_type = Column(String, nullable=False)
     building_lvl = Column(Integer, nullable=False)
     building_cnt = Column(Integer, nullable=False, default=1)
-    
+
+
 class Traps(Base):
     __tablename__ = "traps"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -48,16 +63,16 @@ class Traps(Base):
     trap_lvl = Column(Integer, nullable=False)
     trap_cnt = Column(Integer, nullable=False, default=1)
 
+
 class Helpers(Base):
     __tablename__ = "helpers"
     id = Column(Integer, primary_key=True, autoincrement=True)
     player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
     player = relationship("Account", back_populates="helper_details")
 
-    builders_Apprentice_lvl = Column(Integer, default= 0, nullable=False)
-    lab_Assistant_lvl = Column(Integer, default= 0, nullable=False)
-    prospector_lvl = Column(Integer, default= 0, nullable=False)
-    alchemist_lvl = Column(Integer, default= 0, nullable=False)
+    helper_type = Column(String, nullable=False)
+    helper_lvl = Column(Integer, nullable=False)
+
 
 class HomeTroops(Base):
     __tablename__ = "troops"
@@ -65,95 +80,9 @@ class HomeTroops(Base):
     player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
     player = relationship("Account", back_populates="troop_details")
 
-    barbarian_lvl = Column(Integer, default= 0, nullable=False)
-    archer_lvl = Column(Integer, default= 0, nullable=False)
-    goblin_lvl = Column(Integer, default= 0, nullable=False)
-    giant_lvl = Column(Integer, default= 0, nullable=False)
-    wall_breaker_lvl = Column(Integer, default= 0, nullable=False)
-    balloon_lvl = Column(Integer, default= 0, nullable=False)
-    wizard_lvl = Column(Integer, default= 0, nullable=False)
-    healer_lvl = Column(Integer, default= 0, nullable=False)
-    dragon_lvl = Column(Integer, default= 0, nullable=False)
-    pekka_lvl = Column(Integer, default= 0, nullable=False)
-    minion_lvl = Column(Integer, default= 0, nullable=False)
-    hog_rider_lvl = Column(Integer, default= 0, nullable=False)
-    valkyrie_lvl = Column(Integer, default= 0, nullable=False)
-    golem_lvl = Column(Integer, default= 0, nullable=False)
-    witch_lvl = Column(Integer, default= 0, nullable=False)
-    lava_hound_lvl = Column(Integer, default= 0, nullable=False)
-    bowler_lvl = Column(Integer, default= 0, nullable=False)
-    baby_dragon_lvl = Column(Integer, default= 0, nullable=False)
-    miner_lvl = Column(Integer, default= 0, nullable=False)
-    super_barbarian_lvl = Column(Integer, default= 0, nullable=False)
-    super_archer_lvl = Column(Integer, default= 0, nullable=False)
-    super_wall_breaker_lvl = Column(Integer, default= 0, nullable=False)
-    super_giant_lvl = Column(Integer, default= 0, nullable=False)
-    wall_wrecker_lvl = Column(Integer, default= 0, nullable=False)
-    battle_blimp_lvl = Column(Integer, default= 0, nullable=False)
-    yeti_lvl = Column(Integer, default= 0, nullable=False)
-    sneaky_goblin_lvl = Column(Integer, default= 0, nullable=False)
-    super_miner_lvl = Column(Integer, default= 0, nullable=False)
-    rocket_balloon_lvl = Column(Integer, default= 0, nullable=False)
-    ice_golem_lvl = Column(Integer, default= 0, nullable=False)
-    electro_dragon_lvl = Column(Integer, default= 0, nullable=False)
-    stone_slammer_lvl = Column(Integer, default= 0, nullable=False)
-    inferno_dragon_lvl = Column(Integer, default= 0, nullable=False)
-    super_valkyrie_lvl = Column(Integer, default= 0, nullable=False)
-    dragon_rider_lvl = Column(Integer, default= 0, nullable=False)
-    super_witch_lvl = Column(Integer, default= 0, nullable=False)
-    siege_barracks_lvl = Column(Integer, default= 0, nullable=False)
-    ice_hound_lvl = Column(Integer, default= 0, nullable=False)
-    super_bowler_lvl = Column(Integer, default= 0, nullable=False)
-    super_dragon_lvl = Column(Integer, default= 0, nullable=False)
-    headhunter_lvl = Column(Integer, default= 0, nullable=False)
-    super_wizard_lvl = Column(Integer, default= 0, nullable=False)
-    super_minion_lvl = Column(Integer, default= 0, nullable=False)
-    log_launcher_lvl = Column(Integer, default= 0, nullable=False)
-    flame_flinger_lvl = Column(Integer, default= 0, nullable=False)
-    battle_drill_lvl = Column(Integer, default= 0, nullable=False)
-    electro_titan_lvl = Column(Integer, default= 0, nullable=False)
-    apprentice_warden_lvl = Column(Integer, default= 0, nullable=False)
-    super_hog_rider_lvl = Column(Integer, default= 0, nullable=False)
-    ruin_witch_lvl = Column(Integer, default= 0, nullable=False)
-    root_rider_lvl = Column(Integer, default= 0, nullable=False)
-    druid_lvl = Column(Integer, default= 0, nullable=False)
-    thrower_lvl = Column(Integer, default= 0, nullable=False)
-    troop_launcher_lvl = Column(Integer, default= 0, nullable=False)
-    super_yeti_lvl = Column(Integer, default= 0, nullable=False)
-    furnace_lvl = Column(Integer, default= 0, nullable=False)
-    meteor_golem_lvl = Column(Integer, default= 0, nullable=False)
-    sky_wagon_lvl = Column(Integer, default= 0, nullable=False)
-    lassi_lvl = Column(Integer, default= 0, nullable=False)
-    mighty_yak_lvl = Column(Integer, default= 0, nullable=False)
-    electro_owl_lvl = Column(Integer, default= 0, nullable=False)
-    unicorn_lvl = Column(Integer, default= 0, nullable=False)
-    phoenix_lvl = Column(Integer, default= 0, nullable=False)
-    poison_lizard_lvl = Column(Integer, default= 0, nullable=False)
-    diggy_lvl = Column(Integer, default= 0, nullable=False)
-    frosty_lvl = Column(Integer, default= 0, nullable=False)
-    spirit_fox_lvl = Column(Integer, default= 0, nullable=False)
-    angry_jelly_lvl = Column(Integer, default= 0, nullable=False)
-    sneezy_lvl = Column(Integer, default= 0, nullable=False)
-    greedy_raven_lvl = Column(Integer, default= 0, nullable=False)
+    troop_type = Column(String, nullable=False)
+    troop_lvl = Column(Integer, nullable=False)
 
-class BBtroops(Base):
-    __tablename__ = "bbtroops"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
-    player = relationship("Account", back_populates="bbtroop_details")
-
-    raged_barbarian_lvl = Column(Integer, default= 0, nullable=False)
-    sneaky_archer_lvl = Column(Integer, default= 0, nullable=False)
-    beta_minion_lvl = Column(Integer, default= 0, nullable=False)
-    boxer_giant_lvl = Column(Integer, default= 0, nullable=False)
-    bomber_lvl = Column(Integer, default= 0, nullable=False)
-    power_pekka_lvl = Column(Integer, default= 0, nullable=False)
-    cannon_cart_lvl = Column(Integer, default= 0, nullable=False)
-    drop_ship_lvl = Column(Integer, default= 0, nullable=False)
-    baby_dragon_lvl = Column(Integer, default= 0, nullable=False)
-    night_witch_lvl = Column(Integer, default= 0, nullable=False)
-    hog_glider_lvl = Column(Integer, default= 0, nullable=False)
-    electrofire_wizard_lvl = Column(Integer, default= 0, nullable=False)
 
 class Heroes(Base):
     __tablename__ = "heroes"
@@ -161,57 +90,19 @@ class Heroes(Base):
     player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
     player = relationship("Account", back_populates="hero_details")
 
-    barbarian_king_lvl = Column(Integer, default= 0, nullable=False)
-    archer_queen_lvl = Column(Integer, default= 0, nullable=False)
-    grand_warden_lvl = Column(Integer, default= 0, nullable=False)
-    battle_machine_lvl = Column(Integer, default= 0, nullable=False)
-    royal_champion_lvl = Column(Integer, default= 0, nullable=False)
-    battle_copter_lvl = Column(Integer, default= 0, nullable=False)
-    minion_prince_lvl = Column(Integer, default= 0, nullable=False)
-    dragon_duke_lvl = Column(Integer, default= 0, nullable=False)
+    hero_type = Column(String, nullable=False)
+    hero_lvl = Column(Integer, nullable=False)
 
-    giant_gauntlet_lvl = Column(Integer, default= 0, nullable=False)
-    rocket_spear_lvl = Column(Integer, default= 0, nullable=False)
-    spiky_ball_lvl = Column(Integer, default= 0, nullable=False)
-    frozen_arrow_lvl = Column(Integer, default= 0, nullable=False)
-    monolith_arrow_lvl = Column(Integer, default= 0, nullable=False)
-    heroic_torch_lvl = Column(Integer, default= 0, nullable=False)
-    fireball_lvl = Column(Integer, default= 0, nullable=False)
-    snake_bracelet_lvl = Column(Integer, default= 0, nullable=False)
-    dark_crown_lvl = Column(Integer, default= 0, nullable=False)
-    magic_mirror_lvl = Column(Integer, default= 0, nullable=False)
-    electro_boots_lvl = Column(Integer, default= 0, nullable=False)
-    lavaloon_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    action_figure_lvl = Column(Integer, default= 0, nullable=False)
-    meteor_staff_lvl = Column(Integer, default= 0, nullable=False)
-    frost_flake_lvl = Column(Integer, default= 0, nullable=False)
-    stick_horse_lvl = Column(Integer, default= 0, nullable=False)
-    rocket_backpack_lvl = Column(Integer, default= 0, nullable=False)
-    revenge_deck_lvl = Column(Integer, default= 0, nullable=False)
-    barbarian_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    rage_vial_lvl = Column(Integer, default= 0, nullable=False)
-    archer_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    invisibility_vial_lvl = Column(Integer, default= 0, nullable=False)
-    eternal_tome_lvl = Column(Integer, default= 0, nullable=False)
-    life_gem_lvl = Column(Integer, default= 0, nullable=False)
-    seeking_shield_lvl = Column(Integer, default= 0, nullable=False)
-    royal_gem_lvl = Column(Integer, default= 0, nullable=False)
-    earthquake_boots_lvl = Column(Integer, default= 0, nullable=False)
-    hog_rider_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    vampstache_lvl = Column(Integer, default= 0, nullable=False)
-    haste_vial_lvl = Column(Integer, default= 0, nullable=False)
-    giant_arrow_lvl = Column(Integer, default= 0, nullable=False)
-    healer_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    rage_gem_lvl = Column(Integer, default= 0, nullable=False)
-    healing_tome_lvl = Column(Integer, default= 0, nullable=False)
-    henchmen_puppet_lvl = Column(Integer, default= 0, nullable=False)
-    dark_orb_lvl = Column(Integer, default= 0, nullable=False)
-    metal_pants_lvl = Column(Integer, default= 0, nullable=False)
-    noble_iron_lvl = Column(Integer, default= 0, nullable=False)
-    fire_heart_lvl = Column(Integer, default= 0, nullable=False)
-    stun_blaster_lvl = Column(Integer, default= 0, nullable=False)
-    flame_blower_lvl = Column(Integer, default= 0, nullable=False)
-    electro_fangs_lvl = Column(Integer, default= 0, nullable=False)
+
+class HeroEquipment(Base):
+    __tablename__ = "hero_equipment"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
+    player = relationship("Account", back_populates="hero_equipment_details")
+
+    equipment_type = Column(String, nullable=False)
+    equipment_lvl = Column(Integer, nullable=False)
+
 
 class Spells(Base):
     __tablename__ = "spells"
@@ -219,181 +110,45 @@ class Spells(Base):
     player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
     player = relationship("Account", back_populates="spell_details")
 
-    lightning_spell_lvl = Column(Integer, default= 0, nullable=False)
-    healing_spell_lvl = Column(Integer, default= 0, nullable=False)
-    rage_spell_lvl = Column(Integer, default= 0, nullable=False)
-    jump_spell_lvl = Column(Integer, default= 0, nullable=False)
-    freeze_spell_lvl = Column(Integer, default= 0, nullable=False)
-    poison_spell_lvl = Column(Integer, default= 0, nullable=False)
-    earthquake_spell_lvl = Column(Integer, default= 0, nullable=False)
-    haste_spell_lvl = Column(Integer, default= 0, nullable=False)
-    clone_spell_lvl = Column(Integer, default= 0, nullable=False)
-    skeleton_spell_lvl = Column(Integer, default= 0, nullable=False)
-    bat_spell_lvl = Column(Integer, default= 0, nullable=False)
-    invisibility_spell_lvl = Column(Integer, default= 0, nullable=False)
-    recall_spell_lvl = Column(Integer, default= 0, nullable=False)
-    overgrowth_spell_lvl = Column(Integer, default= 0, nullable=False)
-    revive_spell_lvl = Column(Integer, default= 0, nullable=False)
-    ice_block_spell_lvl = Column(Integer, default= 0, nullable=False)
-    totem_spell_lvl = Column(Integer, default= 0, nullable=False)
-    angry_spell_lvl = Column(Integer, default= 0, nullable=False)
+    spell_type = Column(String, nullable=False)
+    spell_lvl = Column(Integer, nullable=False)
+
 
 class Id_to_name(Base):
     __tablename__ = "id_to_name"
 
-    id = Column(Integer, primary_key=True, nullable = False)
-    name = Column(String, nullable = False)
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(String, nullable=False)
+
 
 class Levels_per_th_home(Base):
     __tablename__ = "levels_per_th_home"
- 
+    __table_args__ = (UniqueConstraint("thing", "category", "th_level"),)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     thing = Column(String, nullable=False)
     category = Column(String, nullable=False)
-    th2 = Column(Integer, nullable=False, default=0)
-    th3 = Column(Integer, nullable=False, default=0)
-    th4 = Column(Integer, nullable=False, default=0)
-    th5 = Column(Integer, nullable=False, default=0)
-    th6 = Column(Integer, nullable=False, default=0)
-    th7 = Column(Integer, nullable=False, default=0)
-    th8 = Column(Integer, nullable=False, default=0)
-    th9 = Column(Integer, nullable=False, default=0)
-    th10 = Column(Integer, nullable=False, default=0)
-    th11 = Column(Integer, nullable=False, default=0)
-    th12 = Column(Integer, nullable=False, default=0)
-    th13 = Column(Integer, nullable=False, default=0)
-    th14 = Column(Integer, nullable=False, default=0)
-    th15 = Column(Integer, nullable=False, default=0)
-    th16 = Column(Integer, nullable=False, default=0)
-    th17 = Column(Integer, nullable=False, default=0)
-    th18 = Column(Integer, nullable=False, default=0)
- 
+    th_level = Column(Integer, nullable=False)
+    unlocked_level = Column(Integer, nullable=False, default=0)
+
+
 class Time_per_th_home(Base):
     __tablename__ = "time_per_th_home"
- 
+    __table_args__ = (UniqueConstraint("thing", "category", "level"),)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     thing = Column(String, nullable=False)
     category = Column(String, nullable=False)
-    level1 = Column(Integer, nullable=True)
-    level2 = Column(Integer, nullable=True)
-    level3 = Column(Integer, nullable=True)
-    level4 = Column(Integer, nullable=True)
-    level5 = Column(Integer, nullable=True)
-    level6 = Column(Integer, nullable=True)
-    level7 = Column(Integer, nullable=True)
-    level8 = Column(Integer, nullable=True)
-    level9 = Column(Integer, nullable=True)
-    level10 = Column(Integer, nullable=True)
-    level11 = Column(Integer, nullable=True)
-    level12 = Column(Integer, nullable=True)
-    level13 = Column(Integer, nullable=True)
-    level14 = Column(Integer, nullable=True)
-    level15 = Column(Integer, nullable=True)
-    level16 = Column(Integer, nullable=True)
-    level17 = Column(Integer, nullable=True)
-    level18 = Column(Integer, nullable=True)
-    level19 = Column(Integer, nullable=True)
-    level20 = Column(Integer, nullable=True)
-    level21 = Column(Integer, nullable=True)
- 
+    level = Column(Integer, nullable=False)
+    upgrade_time_seconds = Column(Integer, nullable=True)
+
+
 class Time_per_level_hero_pet(Base):
     __tablename__ = "time_per_level_hero_pet"
- 
+    __table_args__ = (UniqueConstraint("thing", "category", "level"),)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     thing = Column(String, nullable=False)
     category = Column(String, nullable=False)
-    level1 = Column(Integer, nullable=True)
-    level2 = Column(Integer, nullable=True)
-    level3 = Column(Integer, nullable=True)
-    level4 = Column(Integer, nullable=True)
-    level5 = Column(Integer, nullable=True)
-    level6 = Column(Integer, nullable=True)
-    level7 = Column(Integer, nullable=True)
-    level8 = Column(Integer, nullable=True)
-    level9 = Column(Integer, nullable=True)
-    level10 = Column(Integer, nullable=True)
-    level11 = Column(Integer, nullable=True)
-    level12 = Column(Integer, nullable=True)
-    level13 = Column(Integer, nullable=True)
-    level14 = Column(Integer, nullable=True)
-    level15 = Column(Integer, nullable=True)
-    level16 = Column(Integer, nullable=True)
-    level17 = Column(Integer, nullable=True)
-    level18 = Column(Integer, nullable=True)
-    level19 = Column(Integer, nullable=True)
-    level20 = Column(Integer, nullable=True)
-    level21 = Column(Integer, nullable=True)
-    level22 = Column(Integer, nullable=True)
-    level23 = Column(Integer, nullable=True)
-    level24 = Column(Integer, nullable=True)
-    level25 = Column(Integer, nullable=True)
-    level26 = Column(Integer, nullable=True)
-    level27 = Column(Integer, nullable=True)
-    level28 = Column(Integer, nullable=True)
-    level29 = Column(Integer, nullable=True)
-    level30 = Column(Integer, nullable=True)
-    level31 = Column(Integer, nullable=True)
-    level32 = Column(Integer, nullable=True)
-    level33 = Column(Integer, nullable=True)
-    level34 = Column(Integer, nullable=True)
-    level35 = Column(Integer, nullable=True)
-    level36 = Column(Integer, nullable=True)
-    level37 = Column(Integer, nullable=True)
-    level38 = Column(Integer, nullable=True)
-    level39 = Column(Integer, nullable=True)
-    level40 = Column(Integer, nullable=True)
-    level41 = Column(Integer, nullable=True)
-    level42 = Column(Integer, nullable=True)
-    level43 = Column(Integer, nullable=True)
-    level44 = Column(Integer, nullable=True)
-    level45 = Column(Integer, nullable=True)
-    level46 = Column(Integer, nullable=True)
-    level47 = Column(Integer, nullable=True)
-    level48 = Column(Integer, nullable=True)
-    level49 = Column(Integer, nullable=True)
-    level50 = Column(Integer, nullable=True)
-    level51 = Column(Integer, nullable=True)
-    level52 = Column(Integer, nullable=True)
-    level53 = Column(Integer, nullable=True)
-    level54 = Column(Integer, nullable=True)
-    level55 = Column(Integer, nullable=True)
-    level56 = Column(Integer, nullable=True)
-    level57 = Column(Integer, nullable=True)
-    level58 = Column(Integer, nullable=True)
-    level59 = Column(Integer, nullable=True)
-    level60 = Column(Integer, nullable=True)
-    level61 = Column(Integer, nullable=True)
-    level62 = Column(Integer, nullable=True)
-    level63 = Column(Integer, nullable=True)
-    level64 = Column(Integer, nullable=True)
-    level65 = Column(Integer, nullable=True)
-    level66 = Column(Integer, nullable=True)
-    level67 = Column(Integer, nullable=True)
-    level68 = Column(Integer, nullable=True)
-    level69 = Column(Integer, nullable=True)
-    level70 = Column(Integer, nullable=True)
-    level71 = Column(Integer, nullable=True)
-    level72 = Column(Integer, nullable=True)
-    level73 = Column(Integer, nullable=True)
-    level74 = Column(Integer, nullable=True)
-    level75 = Column(Integer, nullable=True)
-    level76 = Column(Integer, nullable=True)
-    level77 = Column(Integer, nullable=True)
-    level78 = Column(Integer, nullable=True)
-    level79 = Column(Integer, nullable=True)
-    level80 = Column(Integer, nullable=True)
-    level81 = Column(Integer, nullable=True)
-    level82 = Column(Integer, nullable=True)
-    level83 = Column(Integer, nullable=True)
-    level84 = Column(Integer, nullable=True)
-    level85 = Column(Integer, nullable=True)
-    level86 = Column(Integer, nullable=True)
-    level87 = Column(Integer, nullable=True)
-    level88 = Column(Integer, nullable=True)
-    level89 = Column(Integer, nullable=True)
-    level90 = Column(Integer, nullable=True)
-    level91 = Column(Integer, nullable=True)
-    level92 = Column(Integer, nullable=True)
-    level93 = Column(Integer, nullable=True)
-    level94 = Column(Integer, nullable=True)
-    level95 = Column(Integer, nullable=True)
+    level = Column(Integer, nullable=False)
+    upgrade_time_seconds = Column(Integer, nullable=True)
