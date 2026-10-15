@@ -7,6 +7,8 @@ Create Date: 2026-09-22 23:03:16.768949
 """
 from typing import Sequence, Union
 
+from dotenv import load_dotenv
+load_dotenv()
 from alembic import op
 import sqlalchemy as sa
 
@@ -22,6 +24,23 @@ def upgrade() -> None:
         "id_to_name",
         sa.column("id", sa.Integer),
         sa.column("name", sa.String),
+    )
+
+    add_admin = sa.table(
+        "account__details",
+        sa.column("tag", sa.String),
+        sa.column("name", sa.String),
+        sa.column("exp_lvl", sa.Integer),
+        sa.column("town_hall_lvl", sa.Integer),
+        sa.column("trophies", sa.Integer),
+        sa.column("user_type", sa.String),
+    )
+    users = sa.table(
+        "users",
+        sa.column("id", sa.Integer),
+        sa.column("username", sa.String),
+        sa.column("hashed_password", sa.String),
+        sa.column("is_active", sa.Boolean),
     )
 
     rows = [
@@ -52,8 +71,8 @@ def upgrade() -> None:
         {"id":1000057,"name":"giant_cannon"},
         {"id":1000058,"name":"gem_mine"},
         {"id":1000063,"name":"lava_launcher"},
-        {"id":1000065,"name":"b.o.b_control"},
-        {"id":1000078,"name":"o.t.t.o's_outpost"},
+        {"id":1000065,"name":"bob_control"},
+        {"id":1000078,"name":"otto's_outpost"},
         {"id":1000080,"name":"battle_copter_altar"},
         {"id":1000081,"name":"x-bow"},
         {"id":1000082,"name":"healing_hut"},
@@ -231,7 +250,8 @@ def upgrade() -> None:
     from sqlalchemy.dialects.postgresql import insert
     stmt = insert(id_to_name).values(rows).on_conflict_do_nothing(index_elements=["id"])
     op.execute(stmt)
-
+    add_admin_stmt = insert(add_admin).values([{"tag": "admin", "name": "Admin", "exp_lvl": 0, "town_hall_lvl": 0, "trophies": 0, "user_type": "admin"}]).on_conflict_do_nothing(index_elements=["tag"])
+    add_admin_user_stmt = insert(users).values([{"id": 1, "username": "admin", "hashed_password": "$2b$12$KIXQJ5Z5Z5Z5Z5Z5Z5Z5eO", "is_active": True}]).on_conflict_do_nothing(index_elements=["id"])
 
 def downgrade() -> None:
     op.execute("DELETE FROM id_to_name")

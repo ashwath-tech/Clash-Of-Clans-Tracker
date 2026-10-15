@@ -3,6 +3,7 @@ from backend.models.models import (
     Account,
     Buildings,
     Levels_per_th_home,
+    
     Traps,
     HomeTroops,
     Heroes,
@@ -47,6 +48,8 @@ def get_unmaxed_things(tag: str, db):
     ).all()
     max_levels_for_th_dc = {b.thing: b.unlocked_level for b in max_levels_for_th}
 
+    # max_levels_for_pets_heroes = db.query(Levels_per_th_home).filter(
+# 
     # --- Troops (normalized: one row per troop) ---
     troops_left = []
     maxed_troops = []

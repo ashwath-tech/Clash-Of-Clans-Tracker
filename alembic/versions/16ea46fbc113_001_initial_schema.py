@@ -24,29 +24,28 @@ def upgrade() -> None:
 
     # --- Core account (Clash of Clans player) table ---
     op.create_table(
+        "users",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("username", sa.String(), nullable=False),
+        sa.Column("hashed_password", sa.String(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=True),
+        sa.Column('user_type', sa.String(), nullable=True, default='player'),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(op.f("ix_users_id"), "users", ["id"], unique=False)
+    op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
+    
+    op.create_table(
         'account__details',
         sa.Column('tag', sa.String(), nullable=False),
         sa.Column('name', sa.String(), nullable=False),
         sa.Column('exp_lvl', sa.Integer(), nullable=False),
         sa.Column('town_hall_lvl', sa.Integer(), nullable=False),
         sa.Column('trophies', sa.Integer(), nullable=False),
+        sa.column('last_updated', sa.DateTime(), nullable=True),
+        sa.Column('has_gold_pass', sa.Boolean(), default=False),
         sa.PrimaryKeyConstraint('tag')
     )
-
-    # --- App users (login accounts) ---
-    # NOTE: no longer carries a `tag` column directly. A user can be linked
-    # to zero, one, or many player tags via the `user_accounts` join table,
-    # and the same player tag can be linked to many users.
-    op.create_table(
-        "users",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("username", sa.String(), nullable=False),
-        sa.Column("hashed_password", sa.String(), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index(op.f("ix_users_id"), "users", ["id"], unique=False)
-    op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
 
     # --- Many-to-many join: which users have which player tags linked ---
     op.create_table(
@@ -65,9 +64,6 @@ def upgrade() -> None:
         sa.Column('name', sa.String(), nullable=False),
         sa.PrimaryKeyConstraint('id')
     )
-
-    # --- Narrow ("EAV-style") tables, one row per item, matching the
-    #     `buildings` / `traps` pattern ---
 
     op.create_table(
         'buildings',

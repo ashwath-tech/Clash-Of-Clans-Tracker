@@ -6,7 +6,6 @@ Create Date: 2026-09-23 15:04:26.111644
 
 """
 from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
 
@@ -25,6 +24,7 @@ def upgrade():
         sa.Column("category", sa.String(), nullable=False),
         sa.Column("th_level", sa.Integer(), nullable=False),
         sa.Column("unlocked_level", sa.Integer(), nullable=False, server_default="0"),
+        # sa.Column("priority", sa.Integer(), nullable=False, server_default="10"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("thing", "category", "th_level"),
     )

@@ -88,6 +88,7 @@ def create_user(request: CreateUserRequest, db: db_dependency):
         username=request.username,
         hashed_password=bcrypt_context.hash(request.password),
     ))
+    # print("password", bcrypt_context.hash(request.password))
     db.commit()
     return {"detail": "User created"}
 

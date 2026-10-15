@@ -130,6 +130,7 @@ class Levels_per_th_home(Base):
     category = Column(String, nullable=False)
     th_level = Column(Integer, nullable=False)
     unlocked_level = Column(Integer, nullable=False, default=0)
+    # priority = Column(Integer, nullable=False, default=10)  
 
 
 class Time_per_th_home(Base):

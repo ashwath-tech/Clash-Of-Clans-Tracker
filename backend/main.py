@@ -57,8 +57,17 @@ def get_json_data(village_data: schemas.village_data, user: auth.user_dependency
 
     return {"player_tag": tag, "data": data}
 
+@app.post("/gold_paass_status")
+def update_gold_pass_status(tag: str, has_gold_pass: bool, user: auth.user_dependency, db: auth.db_dependency):
+    _get_owned_account_or_403(tag, user, db)
+    account = db.query(Account).filter(Account.tag == tag).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    account.has_gold_pass = has_gold_pass
+    db.commit()
+    return {"player_tag": tag, "has_gold_pass": has_gold_pass}
 
-@app.get("/unmaxed_buildings")
+@app.post("/unmaxed_buildings")
 def unmaxed_buildings(tag: str, user: auth.user_dependency, db: auth.db_dependency):
     _get_owned_account_or_403(tag, user, db)
     details = upgrade.get_unmaxed_things(tag, db)
@@ -83,7 +92,20 @@ def laboratory_time(tag: str, user: auth.user_dependency, db: auth.db_dependency
     troop_details = details.get("troops_left", [])
     spell_details = details.get("spells_left", [])
     total_time, time_details = upgrade.get_lab_time(troop_details + spell_details, db)
-    return {"total_time": total_time, "lab_time": time_details}
+    return {"total_time": total_time, "lab_time": time_details} 
 
+
+@app.get("/setup_RAG")
+def setup_rag(tag: str, user: auth.user_dependency, db: auth.db_dependency):
+    if user.user_type != "admin":
+        raise HTTPException(status_code=403, detail="You are not authorized to access this endpoint.")
+    return "not yet implemented"
+
+
+@app.get("/ask_question")
+def ask_question(question: str, user: auth.user_dependency, db: auth.db_dependency):
+
+    return {"question": question, "answer": "This feature is under development."}
 # crafting station setup
 # cost for building
+# database is doesnt have all levels

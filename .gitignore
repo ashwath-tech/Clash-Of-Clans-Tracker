@@ -11,3 +11,4 @@ wheels/
 .env
 tempCodeRunnerFile.py
 testing/*
+env.py
