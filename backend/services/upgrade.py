@@ -16,7 +16,7 @@ from backend import auth
 from backend.database import SessionLocal
 
 
-def get_unmaxed_things(tag: str, db):
+def get_unmaxed_things(tag: str, db, gold_pass_status = False):
 
     db = SessionLocal()
 

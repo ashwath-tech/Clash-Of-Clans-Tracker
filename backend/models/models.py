@@ -29,7 +29,7 @@ class Account(Base):
     exp_lvl = Column(Integer, nullable=False)
     town_hall_lvl = Column(Integer, nullable=False)
     trophies = Column(Integer, nullable=False)
-
+    gold_pass_status = Column(Boolean, default=False)
     users = relationship("User", secondary=user_accounts, back_populates="accounts")
 
     building_details = relationship("Buildings", back_populates="player", cascade="all,delete-orphan")
@@ -39,8 +39,6 @@ class Account(Base):
     trap_details = relationship("Traps", back_populates="player", cascade="all,delete-orphan")
     hero_details = relationship("Heroes", back_populates="player", cascade="all,delete-orphan")
     hero_equipment_details = relationship("HeroEquipment", back_populates="player", cascade="all,delete-orphan")
-    # NOTE: bbtroop_details / BBtroops removed entirely.
-
 
 class Buildings(Base):
     __tablename__ = "buildings"

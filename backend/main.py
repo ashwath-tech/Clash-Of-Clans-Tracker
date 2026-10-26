@@ -57,13 +57,13 @@ def get_json_data(village_data: schemas.village_data, user: auth.user_dependency
 
     return {"player_tag": tag, "data": data}
 
-@app.post("/gold_paass_status")
+@app.post("/gold_pass_status")
 def update_gold_pass_status(tag: str, has_gold_pass: bool, user: auth.user_dependency, db: auth.db_dependency):
     _get_owned_account_or_403(tag, user, db)
     account = db.query(Account).filter(Account.tag == tag).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    account.has_gold_pass = has_gold_pass
+    account.gold_pass_status = has_gold_pass
     db.commit()
     return {"player_tag": tag, "has_gold_pass": has_gold_pass}
 
@@ -93,6 +93,15 @@ def laboratory_time(tag: str, user: auth.user_dependency, db: auth.db_dependency
     spell_details = details.get("spells_left", [])
     total_time, time_details = upgrade.get_lab_time(troop_details + spell_details, db)
     return {"total_time": total_time, "lab_time": time_details} 
+
+
+
+
+
+
+
+
+
 
 
 @app.get("/setup_RAG")
