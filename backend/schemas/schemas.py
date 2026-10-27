@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, field_validator, EmailStr
+from pydantic import BaseModel, field_validator, EmailStr, Field
 from typing import Optional, List, Dict
 
 class village_data(BaseModel):
@@ -80,4 +80,31 @@ class troop_data(BaseModel):
   lvl: int
   timer: Optional[int] = None
   helper_recurrent: Optional[bool] = None
+
+class MagicItemDetails(BaseModel):
+  tag : str
+  power_potion : int = Field(default=0)
+  builder_potion : int = Field(default=0)
+  hero_potion : int = Field(default=0)
+  resource_potion : int = Field(default=0)
+  rune_of_gold : int = Field(default=0)
+  rune_of_elixir : int = Field(default=0)
+  rune_of_dark_elixir : int = Field(default=0)
+  rune_of_builder_gold : int = Field(default=0)
+  rune_of_builder_elixir : int = Field(default=0)
+  clock_tower_potion : int = Field(default=0)
+  super_potion : int = Field(default=0)
+  pet_potion : int = Field(default=0)
+  builder_star_jar : int = Field(default=0)
+  shovel_of_obstacles : int = Field(default=0)
+  book_of_fighting : int = Field(default=0)
+  book_of_building : int = Field(default=0)
+  book_of_spells : int = Field(default=0)
+  book_of_everything : int = Field(default=0)
+  wall_rings : int = Field(default=0)
+  hamer_of_fighting : int = Field(default=0)
+  hammer_of_spells : int = Field(default=0)
+  hammer_of_building : int = Field(default=0)
+  hammer_of_everything : int = Field(default=0)
+ 
 

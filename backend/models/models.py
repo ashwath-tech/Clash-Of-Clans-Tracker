@@ -31,7 +31,9 @@ class Account(Base):
     trophies = Column(Integer, nullable=False)
     gold_pass_status = Column(Boolean, default=False)
     users = relationship("User", secondary=user_accounts, back_populates="accounts")
+    priority_order = Column(String, nullable=True)
 
+    magic_item_details = relationship("MagicItems", back_populates="player", cascade= "all,delete-orphan")
     building_details = relationship("Buildings", back_populates="player", cascade="all,delete-orphan")
     troop_details = relationship("HomeTroops", back_populates="player", cascade="all,delete-orphan")
     spell_details = relationship("Spells", back_populates="player", cascade="all,delete-orphan")
@@ -39,6 +41,14 @@ class Account(Base):
     trap_details = relationship("Traps", back_populates="player", cascade="all,delete-orphan")
     hero_details = relationship("Heroes", back_populates="player", cascade="all,delete-orphan")
     hero_equipment_details = relationship("HeroEquipment", back_populates="player", cascade="all,delete-orphan")
+
+class MagicItems(Base):
+    __tablename__ = "magicitems"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    player_tag = Column(String, ForeignKey("account__details.tag", ondelete="CASCADE"))
+    magicitem_type = Column(String, nullable=False)
+    magicitem_cnt = Column(Integer, nullable=False)
+    player = relationship("Account", back_populates="magic_item_details")
 
 class Buildings(Base):
     __tablename__ = "buildings"

@@ -8,10 +8,9 @@ from backend.models.models import (
     Heroes,
     HeroEquipment,
     Spells,
+    MagicItems
 )
 from backend.services.idMapping import map_id_to_name
-
-# Maps the API's helper "data" id to our narrow helper_type string.
 HELPER_ID_TO_TYPE = {
     93000000: "builders_apprentice",
     93000001: "lab_assistant",
@@ -94,3 +93,17 @@ def store_in_db(db: Session, json_part, api_part) -> Account:
         db.rollback()
         raise
     return new_account
+
+def store_magic_items(db: Session, details, tag: str):
+    # player_tag = details["tag"]
+    for item, count in details.items():
+        if item == "tag":
+            continue
+        magic_item = MagicItems(
+            player_tag=tag,
+            magicitem_type=item,
+            magicitem_cnt=count,
+        )
+        db.add(magic_item)
+    db.commit()
+    print("done")
