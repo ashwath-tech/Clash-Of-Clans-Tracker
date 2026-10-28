@@ -6,11 +6,12 @@ from backend.config import settings
 from backend.services.coc_api_calling import call_coc_api
 from backend.services.database import store_in_db
 from sqlalchemy import select, delete
-from backend.services import upgrade
+from backend.services import upgrade, gold_pass_service
 import json
 from backend import auth
 from backend.services.account_related import _get_owned_account_or_403
 from backend.routers import magic_items
+# from backend.services.gold_pass import reduce_time
 
 app = FastAPI()
 app.include_router(auth.router)
@@ -81,9 +82,11 @@ def building_time(tag: str, user: auth.user_dependency, db: auth.db_dependency):
     building_details = details.get("buildings_left", [])
     print(f"building_details: {building_details}")
     total_time, time_details = upgrade.get_building_time(building_details, db)
-    gold_pass = int(db.query(Account).filter(Account.tag==tag).first().gold_pass_status)
-    print(gold_pass)
-    return {"total_time": total_time, "building_time": time_details}
+    gold_pass_reduction = int(db.query(Account).filter(Account.tag==tag).first().gold_pass_status)
+    new_details = {"total_time": total_time, "building_time": time_details}
+    # print(gold_pass)
+    new_details = gold_pass_service.reduce_time_buildings(gold_pass_reduction,new_details)
+    return new_details
 
 
 @app.get("/laboratory_time")
@@ -93,7 +96,12 @@ def laboratory_time(tag: str, user: auth.user_dependency, db: auth.db_dependency
     troop_details = details.get("troops_left", [])
     spell_details = details.get("spells_left", [])
     total_time, time_details = upgrade.get_lab_time(troop_details + spell_details, db)
-    return {"total_time": total_time, "lab_time": time_details} 
+
+    gold_pass_reduction = int(db.query(Account).filter(Account.tag==tag).first().gold_pass_status)
+    new_details = {"total_time": total_time, "lab_time": time_details} 
+
+    new_details = gold_pass_service.reduce_time_lab(gold_pass_reduction, new_details)
+    return new_details
 
 
 
