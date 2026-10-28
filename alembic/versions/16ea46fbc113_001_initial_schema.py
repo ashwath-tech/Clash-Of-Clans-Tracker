@@ -43,7 +43,7 @@ def upgrade() -> None:
         sa.Column('town_hall_lvl', sa.Integer(), nullable=False),
         sa.Column('trophies', sa.Integer(), nullable=False),
         sa.Column('last_updated', sa.DateTime(), nullable=True),
-        sa.Column('gold_pass_status', sa.Boolean(), default=False),
+        sa.Column('gold_pass_status', sa.Integer(), default=0),
         sa.Column('priority_order', sa.String(), nullable=True),
         sa.PrimaryKeyConstraint('tag')
     )

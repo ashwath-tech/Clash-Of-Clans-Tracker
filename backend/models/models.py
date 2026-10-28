@@ -29,7 +29,7 @@ class Account(Base):
     exp_lvl = Column(Integer, nullable=False)
     town_hall_lvl = Column(Integer, nullable=False)
     trophies = Column(Integer, nullable=False)
-    gold_pass_status = Column(Boolean, default=False)
+    gold_pass_status = Column(Integer, default=0)
     users = relationship("User", secondary=user_accounts, back_populates="accounts")
     priority_order = Column(String, nullable=True)
 

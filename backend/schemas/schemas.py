@@ -107,4 +107,9 @@ class MagicItemDetails(BaseModel):
   hammer_of_building : int = Field(default=0)
   hammer_of_everything : int = Field(default=0)
  
+class has_gold_pass(BaseModel):
+  tag : str
+  full : Optional[bool]
+  realistic : Optional[bool]
+  nope : Optional[bool]
 

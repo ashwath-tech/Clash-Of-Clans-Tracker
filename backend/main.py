@@ -54,12 +54,16 @@ def get_json_data(village_data: schemas.village_data, user: auth.user_dependency
     return {"player_tag": tag, "data": data}
 
 @app.post("/gold_pass_status")
-def update_gold_pass_status(tag: str, has_gold_pass: bool, user: auth.user_dependency, db: auth.db_dependency):
+def update_gold_pass_status(has_gold_pass : schemas.has_gold_pass, user: auth.user_dependency, db: auth.db_dependency):
+    tag = has_gold_pass.tag
+    amount = 0
+    amount = 20 if has_gold_pass.full else amount
+    amount = 20 if has_gold_pass.realistic else amount
     _get_owned_account_or_403(tag, user, db)
     account = db.query(Account).filter(Account.tag == tag).first()
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    account.gold_pass_status = has_gold_pass
+    account.gold_pass_status = amount
     db.commit()
     return {"player_tag": tag, "has_gold_pass": has_gold_pass}
 
@@ -77,7 +81,8 @@ def building_time(tag: str, user: auth.user_dependency, db: auth.db_dependency):
     building_details = details.get("buildings_left", [])
     print(f"building_details: {building_details}")
     total_time, time_details = upgrade.get_building_time(building_details, db)
-
+    gold_pass = int(db.query(Account).filter(Account.tag==tag).first().gold_pass_status)
+    print(gold_pass)
     return {"total_time": total_time, "building_time": time_details}
 
 
@@ -100,17 +105,16 @@ def laboratory_time(tag: str, user: auth.user_dependency, db: auth.db_dependency
 
 
 
-@app.get("/setup_RAG")
-def setup_rag(tag: str, user: auth.user_dependency, db: auth.db_dependency):
-    if user.user_type != "admin":
-        raise HTTPException(status_code=403, detail="You are not authorized to access this endpoint.")
-    return "not yet implemented"
+# @app.get("/setup_RAG")
+# def setup_rag(tag: str, user: auth.user_dependency, db: auth.db_dependency):
+#     if user.user_type != "admin":
+#         raise HTTPException(status_code=403, detail="You are not authorized to access this endpoint.")
+#     return "not yet implemented"
 
 
-@app.get("/ask_question")
-def ask_question(question: str, user: auth.user_dependency, db: auth.db_dependency):
+# @app.get("/ask_question")
+# def ask_question(question: str, user: auth.user_dependency, db: auth.db_dependency):
 
-    return {"question": question, "answer": "This feature is under development."}
-# crafting station setup
-# cost for building
-# database is doesnt have all levels
+#     return {"question": question, "answer": "This feature is under development."}
+# # crafting station setup
+# # cost for building
